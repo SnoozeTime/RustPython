@@ -36,14 +36,16 @@ fn duration_to_f64(d: Duration) -> f64 {
     (d.as_secs() as f64) + (f64::from(d.subsec_nanos()) / 1e9)
 }
 
-fn time_time(vm: &VirtualMachine, args: PyFuncArgs) -> PyResult {
-    arg_check!(vm, args);
-    let x = match SystemTime::now().duration_since(UNIX_EPOCH) {
+fn get_time() -> f64 {
+    match SystemTime::now().duration_since(UNIX_EPOCH) {
         Ok(v) => duration_to_f64(v),
-        Err(err) => panic!("Error: {:?}", err),
-    };
-    let value = vm.ctx.new_float(x);
-    Ok(value)
+        Err(err) => panic!("Time error: {:?}", err),
+    }
+}
+
+fn time_time(vm: &VirtualMachine) -> f64 {
+    let time_func = vm.settings.syscall_functions.time.unwrap_or(get_time);
+    time_func()
 }
 
 fn time_monotonic(vm: &VirtualMachine, args: PyFuncArgs) -> PyResult {
@@ -51,7 +53,7 @@ fn time_monotonic(vm: &VirtualMachine, args: PyFuncArgs) -> PyResult {
     // TODO: implement proper monotonic time!
     let x = match SystemTime::now().duration_since(UNIX_EPOCH) {
         Ok(v) => duration_to_f64(v),
-        Err(err) => panic!("Error: {:?}", err),
+        Err(err) => panic!("Time error: {:?}", err),
     };
     let value = vm.ctx.new_float(x);
     Ok(value)

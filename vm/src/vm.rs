@@ -100,6 +100,13 @@ pub struct PySettings {
 
     /// sys.argv
     pub argv: Vec<String>,
+
+    pub syscall_functions: PySyscallFunctions,
+}
+
+#[derive(Default)]
+pub struct PySyscallFunctions {
+    pub time: Option<fn() -> f64>,
 }
 
 /// Trace events for sys.settrace and sys.setprofile.
@@ -133,6 +140,7 @@ impl Default for PySettings {
             dont_write_bytecode: false,
             path_list: vec![],
             argv: vec![],
+            syscall_functions: PySyscallFunctions::default(),
         }
     }
 }

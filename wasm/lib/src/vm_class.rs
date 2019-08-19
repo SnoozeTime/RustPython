@@ -10,7 +10,7 @@ use rustpython_vm::function::PyFuncArgs;
 use rustpython_vm::import;
 use rustpython_vm::pyobject::{PyObject, PyObjectPayload, PyObjectRef, PyResult, PyValue};
 use rustpython_vm::scope::{NameProtocol, Scope};
-use rustpython_vm::VirtualMachine;
+use rustpython_vm::{PySettings, PySyscallFunctions, VirtualMachine};
 
 use crate::browser_module::setup_browser_module;
 use crate::convert;
@@ -27,13 +27,19 @@ pub(crate) struct StoredVirtualMachine {
 
 impl StoredVirtualMachine {
     fn new(id: String, inject_browser_module: bool) -> StoredVirtualMachine {
-        let mut vm: VirtualMachine = Default::default();
+        let mut vm = VirtualMachine::new(PySettings {
+            syscall_functions: PySyscallFunctions {
+                time: Some(js_sys::Date::now),
+                ..Default::default()
+            },
+            ..Default::default()
+        });
         vm.wasm_id = Some(id);
         let scope = vm.new_scope_with_builtins();
 
         js_module::setup_js_module(&vm);
         if inject_browser_module {
-            vm.stdlib_inits.borrow_mut().insert(
+            vm.stdlib_inits.get_mut().insert(
                 "_window".to_string(),
                 Box::new(|vm| {
                     py_module!(vm, "_window", {
