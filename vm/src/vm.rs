@@ -107,6 +107,8 @@ pub struct PySettings {
 #[derive(Default)]
 pub struct PySyscallFunctions {
     pub time: Option<fn() -> f64>,
+    #[doc(hidden)]
+    pub _nonexhaustive: (),
 }
 
 /// Trace events for sys.settrace and sys.setprofile.
